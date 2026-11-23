@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>kalem — kurşun kalem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--ink:#111;--tile:#e8e8e6;--mute:#777}
+*{box-sizing:border-box;margin:0}
+b{font-weight:400}
+body{background:var(--bg);color:var(--ink);font:400 11px/1.6 "Space Mono",ui-monospace,Consolas,monospace;letter-spacing:0}
+a{color:inherit;text-decoration:none;cursor:pointer}
+a:hover{opacity:.55}
+a{transition:opacity .25s}
+
+header{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;padding:14px 16px}
+header a:last-child{text-align:right}
+.logo{font-weight:400;font-size:22px;line-height:1;letter-spacing:-.04em;text-transform:lowercase}
+
+.hero{text-align:center;padding:22vh 16px 20vh;max-width:520px;margin:auto;font-size:12px}
+.hero p+p{margin-top:2px}
+.shop{display:block;text-align:center;margin-bottom:12px}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;padding:0 32px}
+.tile{background:var(--tile);aspect-ratio:1/1;display:grid;place-items:center;position:relative;overflow:hidden}
+.tile img{width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.tile:hover img{transform:scale(1.04)}
+.tile span{position:absolute;left:8px;bottom:6px;font-weight:400;color:var(--mute)}
+.tile i{position:absolute;right:8px;bottom:6px;font-style:normal;opacity:0;transition:opacity .25s}
+.tile:hover i{opacity:1}
+
+.index{display:grid;grid-template-columns:repeat(3,1fr);gap:24px 16px;padding:140px 16px 120px;font-size:10px;text-align:center}
+.index p{font-weight:400;color:var(--mute)}
+.index b{display:block;color:var(--ink)}
+.index .g{margin-bottom:10px}
+
+footer{display:flex;justify-content:space-between;padding:14px 16px;font-weight:400;color:var(--mute)}
+
+/* sade giriş animasyonu */
+.fade{opacity:0;transform:translateY(6px);animation:in .9s ease forwards}
+.fade:nth-child(2){animation-delay:.12s}.fade:nth-child(3){animation-delay:.24s}.fade:nth-child(4){animation-delay:.36s}
+@keyframes in{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.fade{opacity:1;transform:none}}
+
+/* hesap + sepet panelleri */
+header a[role=button]{cursor:pointer}
+.veil{position:fixed;inset:0;background:rgba(255,255,255,.7);opacity:0;pointer-events:none;transition:opacity .35s;z-index:5}
+.veil.on{opacity:1;pointer-events:auto}
+.panel{position:fixed;top:0;bottom:0;width:min(400px,100%);background:var(--bg);z-index:6;display:flex;flex-direction:column;transition:transform .45s cubic-bezier(.2,.7,.2,1),visibility .45s;visibility:hidden}
+.panel.left{left:0;transform:translateX(-100%);border-right:1px solid var(--tile)}
+.panel.right{right:0;transform:translateX(100%);border-left:1px solid var(--tile)}
+.panel.on{transform:none;visibility:visible}
+.top{display:flex;justify-content:space-between;padding:14px 16px}
+.panel.left .top{justify-content:flex-end}
+.body{padding:80px 16px 16px;display:flex;flex-direction:column;gap:18px;flex:1;overflow:auto}
+h2{font-weight:400;font-size:22px;line-height:1;letter-spacing:-.04em}
+label{display:block;font-weight:400;color:var(--mute)}
+input{display:block;width:100%;border:0;border-bottom:1px solid var(--ink);background:none;font-family:inherit;font-weight:400;font-size:12px;line-height:2;text-transform:none;color:var(--ink);padding:2px 0;outline:0;border-radius:0}
+input:focus{border-color:var(--mute)}
+.btn{border:1px solid var(--ink);background:none;color:var(--ink);font-family:inherit;font-weight:400;font-size:11px;line-height:1;padding:12px;cursor:pointer;margin-top:8px;transition:background .25s,color .25s}
+.btn:hover{background:var(--ink);color:var(--bg)}
+.note{font-weight:400;color:var(--mute)}
+.line{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center}
+.line .tile{aspect-ratio:1}
+.line .tile img{transform:none!important}
+.line div p{font-weight:400;color:var(--mute)}
+.q{display:flex;gap:10px;align-items:center}
+.q a{cursor:pointer;padding:0 2px}
+.total{display:flex;justify-content:space-between;border-top:1px solid var(--ink);padding-top:12px;margin-top:auto}
+@media (max-width:700px){.grid{gap:12px;padding:0 12px}.grid,.index{grid-template-columns:repeat(2,1fr)}.logo{font-size:18px}.hero{padding:14vh 16px}}
+</style>
+</head>
+<body>
+
+<header>
+  <a id="acc" role="button" tabindex="0">Hesap</a>
+  <a class="logo" href="#">kalem</a>
+  <a id="cart" role="button" tabindex="0">Sepet (0)</a>
+</header>
+
+<div class="veil" id="veil"></div>
+
+<aside class="panel left" id="pAcc" aria-hidden="true">
+  <div class="top"><a data-close>Kapat</a></div>
+  <form id="form" class="body" autocomplete="on">
+    <h2 id="ftitle">Giriş</h2>
+    <label>E-posta<input type="email" name="email" required autocomplete="email"></label>
+    <label>Şifre<input type="password" name="pw" required minlength="6" autocomplete="current-password"></label>
+    <button class="btn">Devam</button>
+    <p class="note"><a id="toggle">Hesabın yok mu? Üye ol</a></p>
+    <p class="note" id="msg"></p>
+  </form>
+</aside>
+
+<aside class="panel right" id="pCart" aria-hidden="true">
+  <div class="top"><span>Sepet</span><a data-close>Kapat</a></div>
+  <div class="body">
+    <div id="lines"></div>
+    <div class="total"><span>Toplam</span><span id="sum">0 ₺</span></div>
+    <button class="btn" id="pay">Ödemeye geç</button>
+    <p class="note" id="empty">Sepetin boş.</p>
+  </div>
+</aside>
+
+<section class="hero fade">
+  <p>Kalem nesne olarak, ürün olarak değil.</p>
+  <p>Ahşap, grafit ve zaman. Başka hiçbir şey.</p>
+  <p>kalem 2026*</p>
+</section>
+
+<a class="shop">Tümü</a>
+
+<main class="grid" id="grid"></main>
+
+<section class="index" id="index"></section>
+
+<footer><span>İletişim</span><span>Instagram</span><span>© 2026 kalem</span></footer>
+
+<script>
+// ponytail: ürünler dizide, backend yok; sepet sadece sayaç
+const P=[
+ {c:"a",k:1,n:"Günlük Kalem Kutusu",s:"HB, 12 adet"},
+ {c:"a",k:2,n:"Günlük Kalem",s:"2B, 12 adet"},
+ {c:"b",k:3,n:"Tekli Kalem",s:"2B"},
+ {c:"b",k:4,n:"Kutu ve Kalem",s:"2B"},
+ {c:"c",k:5,n:"Grafit Uç",s:"Detay"},
+ {c:"c",k:6,n:"Elde Kalem",s:"Kullanım"},
+];
+const g=document.getElementById("grid"),ix=document.getElementById("index");
+P.forEach((p,i)=>{
+ g.insertAdjacentHTML("beforeend",`<a class="tile fade"><img src="img/${p.k}.jpg" alt="${p.n}" loading="lazy"><span>${p.c}.${i%2+1}</span><i>Sepete ekle</i></a>`);
+ ix.insertAdjacentHTML("beforeend",`<div><p>${p.c}.${i%2+1}</p><b>${p.n}<br>(2026)</b><p>${p.s}</p></div>`);
+});
+// ---- sepet ---- (ponytail: demo fiyat, localStorage; gerçek ödeme/backend yok)
+const $=id=>document.getElementById(id), PRICE=[185,185,24,185,0,0];
+let cart={};try{cart=JSON.parse(localStorage.cart||"{}")}catch{}
+const save=()=>{try{localStorage.cart=JSON.stringify(cart)}catch{}};
+function draw(){
+ const ids=Object.keys(cart).filter(i=>cart[i]>0);
+ $("lines").innerHTML=ids.map(i=>`<div class="line"><div class="tile"><img src="img/${P[i].k}.jpg" alt=""></div>
+  <div><b>${P[i].n}</b><p>${P[i].s}</p></div>
+  <div class="q"><a data-d="-1" data-i="${i}">−</a>${cart[i]}<a data-d="1" data-i="${i}">+</a></div></div>`).join("");
+ const count=ids.reduce((s,i)=>s+cart[i],0), sum=ids.reduce((s,i)=>s+cart[i]*PRICE[i],0);
+ $("cart").textContent=`Sepet (${count})`;$("sum").textContent=sum+" ₺";
+ $("empty").hidden=count>0;$("pay").hidden=!count;
+}
+g.onclick=e=>{const t=e.target.closest(".tile");if(t){const i=[...g.children].indexOf(t);cart[i]=(cart[i]||0)+1;save();draw();open("pCart")}};
+$("lines").onclick=e=>{const a=e.target.closest("[data-i]");if(a){cart[a.dataset.i]+=+a.dataset.d;save();draw()}};
+// ---- paneller ----
+function open(id){close();$(id).classList.add("on");$(id).setAttribute("aria-hidden","false");$("veil").classList.add("on")}
+function close(){document.querySelectorAll(".panel.on").forEach(p=>{p.classList.remove("on");p.setAttribute("aria-hidden","true")});$("veil").classList.remove("on")}
+$("acc").onclick=()=>open("pAcc");$("cart").onclick=()=>open("pCart");
+$("veil").onclick=close;document.querySelectorAll("[data-close]").forEach(a=>a.onclick=close);
+onkeydown=e=>{if(e.key==="Escape")close();if(e.key==="Enter"&&e.target.matches("[role=button]"))e.target.click()};
+// ---- hesap formu (demo) ----
+let reg=false;
+$("toggle").onclick=()=>{reg=!reg;$("ftitle").textContent=reg?"Üye ol":"Giriş";$("toggle").textContent=reg?"Hesabın var mı? Giriş":"Hesabın yok mu? Üye ol";$("msg").textContent=""};
+$("form").onsubmit=e=>{e.preventDefault();$("msg").textContent="Demo: sunucu bağlı değil."};
+$("pay").onclick=()=>{$("lines").innerHTML="";cart={};save();draw();$("empty").textContent="Demo: ödeme bağlı değil."};
+draw();
+</script>
+</body>
+</html>
